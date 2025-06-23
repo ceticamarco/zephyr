@@ -12,8 +12,7 @@ type ForecastEntity struct {
 	Wind      Wind       `json:"wind"`
 }
 
-// The Forecast data type, representing the an set
-// of ForecastEntity
+// The Forecast data type, representing a set of ForecastEntity
 type Forecast struct {
-	Forecast []ForecastEntity
+    Forecast []ForecastEntity `json:"forecast"`
 }

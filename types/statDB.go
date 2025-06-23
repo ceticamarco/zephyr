@@ -18,7 +18,7 @@ func InitDB() *StatDB {
 }
 
 func (statDB *StatDB) AddStatistic(cityName string, weather Weather) {
-	key := fmt.Sprintf("%s@%s", weather.Date.Date, cityName)
+	key := fmt.Sprintf("%s@%s", weather.Date.Date.Format("2006-01-02"), cityName)
 
 	// Insert weather statistic into the database only if it isn't present
 	if _, isPresent := statDB.db[key]; isPresent {

@@ -14,12 +14,13 @@ import (
 func main() {
 	// Retrieve listening port, API token and cache time-to-live from environment variables
 	var (
+		host   = os.Getenv("ZEPHYR_ADDR")
 		port   = os.Getenv("ZEPHYR_PORT")
 		token  = os.Getenv("ZEPHYR_TOKEN")
 		ttl, _ = strconv.ParseInt(os.Getenv("ZEPHYR_CACHE_TTL"), 10, 8)
 	)
 
-	if port == "" || token == "" || ttl == 0 {
+	if host == "" || port == "" || token == "" || ttl == 0 {
 		log.Fatalf("Environment variables not set")
 	}
 
@@ -56,7 +57,7 @@ func main() {
 		controller.GetStatistics(res, req, statDB)
 	})
 
-	listenAddr := fmt.Sprintf(":%s", port)
+	listenAddr := fmt.Sprintf("%s:%s", host, port)
 	log.Printf("Server listening on %s", listenAddr)
 	http.ListenAndServe(listenAddr, nil)
 }

@@ -23,7 +23,7 @@ any kind of internet-based project or device. I already use it on a widget
 on my phone, on my terminal, on the tmux's status bar, in a couple of
 smart bedside clocks I've built and as a standalone web app.
 
-## Basic Usage
+## Weather
 As state before, Zephyr talks via HTTP using the JSON format. Therefore, you
 can query it using any HTTP client of your choice. Below you can find some examples
 using `curl`:
@@ -118,26 +118,30 @@ which yields:
 {
   "forecast": [
     {
-      "condEmoji": "🌧️",
-      "condition": "Rain",
       "date": "Tuesday, 2025/05/06",
+      "min": "-2°C",
+      "max": "6°C",
+      "condition": "Rain",
+      "emoji": "🌧️",
       "feelsLike": "0°C",
-      "tempMax": "6°C",
-      "tempMin": "-2°C",
-      "windArrow": "↗️",
-      "windDirection": "SSW",
-      "windSpeed": "14.7 km/h"
+      "wind": {
+        "arrow": "↗️",
+        "direction": "SSW",
+        "speed": "14.7 km/h"
+      }
     },
     {
-      "condEmoji": "☃️",
-      "condition": "Snow",
       "date": "Wednesday, 2025/05/07",
+      "min": "2°C",
+      "max": "9°C",
+      "condition": "Snow",
+      "emoji": "☃️",
       "feelsLike": "7°C",
-      "tempMax": "9°C",
-      "tempMin": "2°C",
-      "windArrow": "↘️",
-      "windDirection": "NNW",
-      "windSpeed": "13.9 km/h"
+      "wind": {
+        "arrow": "↘️",
+        "direction": "NNW",
+        "speed": "13.9 km/h"
+      }
     }
   ]
 }
@@ -173,7 +177,7 @@ will yield
 > $$
 
 ## Statistical analysis
-In addition to the weather data, Zephyr also provides statistical analysis of pase
+In addition to the weather data, Zephyr also provides statistical analysis of past
 meteorological records. This is done through the `/stats/:city` endpoint, which
 returns additional information about the weather of the previous days such as
 the average temperature, the maximum and minimum temperatures, the standard deviation,
@@ -205,9 +209,7 @@ which yields:
   "anomaly": null
 }
 ```
-After enough data has been collected, the service will also be able to detect
-anomalies in the temperature data using a built-in statistical model.
-
+The service is also able to detect anomalies in the temperature data using a built-in statistical model. 
 For instance, two temperature spikes, such as `+34°C` and `-15°C`, with a mean of `25°C` and a standard deviation of `0.2°C`,
 will be flagged as outliers by the model and will be reported as such:
 
@@ -237,14 +239,14 @@ will be flagged as outliers by the model and will be reported as such:
 The anomaly detection algorithm is based on a modified version of the
 [Z-Score](https://en.wikipedia.org/wiki/Standard_score) algorithm, which uses the
 [Median Absolute Deviation](https://en.wikipedia.org/wiki/Median_absolute_deviation) to measure the variability
-in a given sample of quantitative data. The algorithm can be summarized as follows(let $x$ be the sample):
+in a given sample of quantitative data. The algorithm can be summarized as follows(let $X$ be the sample):
 
 
 $$
     \tilde{x} = \text{median}({X})
 $$
 
-Compute The median absolute deviation
+Compute the median absolute deviation
 
 $$
   \text{MAD} = \text{median}\{ |x_i - \tilde{x}| : \forall i = 0, \dots, n-1 \}
@@ -258,6 +260,7 @@ $$
 $$
 
 Flag $x_i$ as an outlier if:
+
 $$
     |z_i| > 4.5
 $$
@@ -276,8 +279,8 @@ These constants have been fine-tuned to work well with the weather data of
 a wide range of climates and to ignore daily temperature fluctuations while
 still being able to detect significant anomalies.
 
-Daily temperatures collected over a short time window(1/2 months, but not less than a few days)
-// *should* be normally distributed. This algorithm only work under this assumption.
+According to the Q-Q plots, daily temperatures collected over a time window of no more than 1/2 months
+but no less than a week, *should* follow a normal distribution.
 
 > [!IMPORTANT]
 > The anomaly detection algorithm works under the assumption that the weather data
@@ -285,14 +288,13 @@ Daily temperatures collected over a short time window(1/2 months, but not less t
 > with a very small number of samples(e.g. few days of data) or with a large
 > number of samples(e.g. multi-seasonal data). 
 
-My statistical benchmarks(QQ plots) show that the algorithm works
-quite well when these conditions are met, and even with real world data,
+The algorithm works quite well when these conditions are met, and even with real world data,
 the results were quite satisfactory. However, if it
 start to produce false positives, you will need to dump the whole in-memory
 database and start from scratch. I recommend to do this at every change of season.
 
 ## Embedded Cache System
-To minimize the amount of requests sent to the OpenWeatherMap API, Zephyr provides an built-in,
+To minimize the amount of requests sent to the OpenWeatherMap API, Zephyr provides a built-in,
 in-memory cache data structure that stores fetched weather data. Each time a client requests
 weather data for a given location, the service will first check if it's already available on the cache.
 If it is found, the cached value will be returned, otherwise a new request will be sent to the OpenWeatherMap API
@@ -309,6 +311,7 @@ Zephyr requires the following environment variables to be set:
 
 | Variable             | Meaning                                |
 |----------------------|----------------------------------------|
+| `ZEPHYR_ADDR`        | Listen address                         |
 | `ZEPHYR_PORT`        | Listen port                            |
 | `ZEPHYR_TOKEN`       | OpenWeatherMap API key                 |
 | `ZEPHYR_CACHE_TTL`   | Cache time-to-live(expressed in hours) |

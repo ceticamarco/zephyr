@@ -4,9 +4,10 @@ services:
     build: .
     container_name: "zephyr"
     environment:
-      ZEPHYR_PORT:  3000  # Listen port
-      ZEPHYR_TOKEN: ""    # OpenWeatherMap API Key
-      ZEPHYR_CACHE_TTL: 3 # Cache time-to-live in hour
+      ZEPHYR_ADDR: 127.0.0.1 # Listen address
+      ZEPHYR_PORT:  3000     # Listen port
+      ZEPHYR_TOKEN: ""       # OpenWeatherMap API Key
+      ZEPHYR_CACHE_TTL: 3    # Cache time-to-live in hour
     restart: always
     volumes:
       - "/etc/localtime:/etc/localtime:ro"
