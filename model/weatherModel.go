@@ -53,7 +53,7 @@ func GetWeather(city *types.City, apiKey string) (types.Weather, error) {
 	params.Set("lon", strconv.FormatFloat(city.Lon, 'f', -1, 64))
 	params.Set("appid", apiKey)
 	params.Set("units", "metric")
-	params.Set("exclude", "minutely,hourly,daily,alerts")
+	params.Set("exclude", "minutely,hourly,alerts")
 
 	url.RawQuery = params.Encode()
 
@@ -63,7 +63,7 @@ func GetWeather(city *types.City, apiKey string) (types.Weather, error) {
 	}
 	defer res.Body.Close()
 
-	// Structure representing the JSON response
+	// Structure representing the *current* weather
 	type WeatherRes struct {
 		Current struct {
 			FeelsLike   float64 `json:"feels_like"`
@@ -75,6 +75,12 @@ func GetWeather(city *types.City, apiKey string) (types.Weather, error) {
 				Icon        string `json:"icon"`
 			} `json:"weather"`
 		} `json:"current"`
+		Daily []struct {
+			Temp struct {
+				Min float64 `json:"min"`
+				Max float64 `json:"max"`
+			} `json:"temp"`
+		} `json:"daily"`
 	}
 
 	var weather WeatherRes
@@ -104,6 +110,8 @@ func GetWeather(city *types.City, apiKey string) (types.Weather, error) {
 	return types.Weather{
 		Date:        weatherDate,
 		Temperature: strconv.FormatFloat(weather.Current.Temperature, 'f', -1, 64),
+		Min:         strconv.FormatFloat(weather.Daily[0].Temp.Min, 'f', -1, 64),
+		Max:         strconv.FormatFloat(weather.Daily[0].Temp.Max, 'f', -1, 64),
 		FeelsLike:   strconv.FormatFloat(weather.Current.FeelsLike, 'f', -1, 64),
 		Condition:   weather.Current.Weather[0].Title,
 		Emoji:       emoji,

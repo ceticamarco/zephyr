@@ -34,7 +34,7 @@ func GetCoordinates(cityName string, apiKey string) (types.City, error) {
 	}
 
 	if len(geoArr) == 0 {
-		return types.City{}, errors.New("Cannot find this city")
+		return types.City{}, errors.New("cannot find this city")
 	}
 
 	return types.City{

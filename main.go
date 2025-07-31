@@ -46,7 +46,7 @@ func main() {
 	})
 
 	http.HandleFunc("/forecast/", func(res http.ResponseWriter, req *http.Request) {
-		controller.GetForecast(res, req, &cache.ForecastCache, &vars)
+		controller.GetForecast(res, req, &cache.DailyForecastCache, &cache.HourlyForecastCache, &vars)
 	})
 
 	http.HandleFunc("/moon", func(res http.ResponseWriter, req *http.Request) {

@@ -33,3 +33,32 @@ func (date ZephyrDate) MarshalJSON() ([]byte, error) {
 
 	return []byte("\"" + fmtDate + "\""), nil
 }
+
+type ZephyrTime struct {
+	Time time.Time
+}
+
+func (t *ZephyrTime) UnmarshalJSON(b []byte) error {
+	s := strings.Trim(string(b), "\"")
+	if s == "" {
+		return nil
+	}
+
+	var err error
+	t.Time, err = time.Parse("15:04", s)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (t ZephyrTime) MarshalJSON() ([]byte, error) {
+	if t.Time.IsZero() {
+		return []byte("\"\""), nil
+	}
+
+	fmtTime := t.Time.Format("3:04 PM")
+
+	return []byte("\"" + fmtTime + "\""), nil
+}

@@ -7,7 +7,7 @@ import (
 
 // cacheType, representing the abstract value of a CacheEntity
 type cacheType interface {
-	Weather | Metrics | Wind | Forecast | Moon
+	Weather | Metrics | Wind | DailyForecast | HourlyForecast | Moon
 }
 
 // CacheEntity, representing the value of the cache
@@ -23,20 +23,22 @@ type Cache[T cacheType] struct {
 
 // Caches, representing a grouping of the various caches
 type Caches struct {
-	WeatherCache  Cache[Weather]
-	MetricsCache  Cache[Metrics]
-	WindCache     Cache[Wind]
-	ForecastCache Cache[Forecast]
-	MoonCache     CacheEntity[Moon]
+	WeatherCache        Cache[Weather]
+	MetricsCache        Cache[Metrics]
+	WindCache           Cache[Wind]
+	DailyForecastCache  Cache[DailyForecast]
+	HourlyForecastCache Cache[HourlyForecast]
+	MoonCache           CacheEntity[Moon]
 }
 
 func InitCache() *Caches {
 	return &Caches{
-		WeatherCache:  Cache[Weather]{Data: make(map[string]CacheEntity[Weather])},
-		MetricsCache:  Cache[Metrics]{Data: make(map[string]CacheEntity[Metrics])},
-		WindCache:     Cache[Wind]{Data: make(map[string]CacheEntity[Wind])},
-		ForecastCache: Cache[Forecast]{Data: make(map[string]CacheEntity[Forecast])},
-		MoonCache:     CacheEntity[Moon]{element: Moon{}, timestamp: time.Time{}},
+		WeatherCache:        Cache[Weather]{Data: make(map[string]CacheEntity[Weather])},
+		MetricsCache:        Cache[Metrics]{Data: make(map[string]CacheEntity[Metrics])},
+		WindCache:           Cache[Wind]{Data: make(map[string]CacheEntity[Wind])},
+		DailyForecastCache:  Cache[DailyForecast]{Data: make(map[string]CacheEntity[DailyForecast])},
+		HourlyForecastCache: Cache[HourlyForecast]{Data: make(map[string]CacheEntity[HourlyForecast])},
+		MoonCache:           CacheEntity[Moon]{element: Moon{}, timestamp: time.Time{}},
 	}
 }
 

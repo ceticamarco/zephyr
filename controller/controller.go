@@ -58,20 +58,46 @@ func fmtWind(windSpeed string, isImperial bool) string {
 }
 
 func fmtKey(key string) string {
-	// Format cache/database keys by replacing whitespaces with '+' token
-	// and making them uppercase
-	return strings.ToUpper(strings.ReplaceAll(key, " ", "+"))
+	// Cache/database key is formatted by:
+	// 1. Removing leading and trailing whitespaces
+	// 2. Replacing in-between spaces using the '+' token
+	// 3. Making the key uppercase
+	return strings.ToUpper(strings.ReplaceAll(strings.TrimSpace(key), " ", "+"))
 }
 
-func deepCopyForecast(original types.Forecast) types.Forecast {
-	// Copy the outer structure
-	fc_copy := original
+func fmtDailyForecast(forecast *types.DailyForecast, isImperial bool) {
+	for idx := range forecast.Forecast {
+		val := &forecast.Forecast[idx]
+		val.Min = fmtTemperature(val.Min, isImperial)
+		val.Max = fmtTemperature(val.Max, isImperial)
+		val.FeelsLike = fmtTemperature(val.FeelsLike, isImperial)
+		val.Wind.Speed = fmtWind(val.Wind.Speed, isImperial)
+	}
+}
 
-	// Allocate enough space
-	fc_copy.Forecast = make([]types.ForecastEntity, len(original.Forecast))
+func fmtHourlyForecast(forecast *types.HourlyForecast, isImperial bool) {
+	for idx := range forecast.Forecast {
+		val := &forecast.Forecast[idx]
+		val.Temperature = fmtTemperature(val.Temperature, isImperial)
+		val.Wind.Speed = fmtWind(val.Wind.Speed, isImperial)
+	}
+}
 
-	// Copy inner structure
-	copy(fc_copy.Forecast, original.Forecast)
+func deepCopyForecast[T types.DailyForecast | types.HourlyForecast](original T) T {
+	var fc_copy T
+
+	switch any(original).(type) {
+	case types.DailyForecast:
+		orig := any(original).(types.DailyForecast)
+		fc_copy = any(types.DailyForecast{
+			Forecast: append([]types.DailyForecastEntity(nil), orig.Forecast...),
+		}).(T)
+	case types.HourlyForecast:
+		orig := any(original).(types.HourlyForecast)
+		fc_copy = any(types.HourlyForecast{
+			Forecast: append([]types.HourlyForecastEntity(nil), orig.Forecast...),
+		}).(T)
+	}
 
 	return fc_copy
 }
@@ -93,6 +119,8 @@ func GetWeather(res http.ResponseWriter, req *http.Request, cache *types.Cache[t
 	if found {
 		// Format weather object and then return it
 		cachedValue.Temperature = fmtTemperature(cachedValue.Temperature, isImperial)
+		cachedValue.Min = fmtTemperature(cachedValue.Min, isImperial)
+		cachedValue.Max = fmtTemperature(cachedValue.Max, isImperial)
 		cachedValue.FeelsLike = fmtTemperature(cachedValue.FeelsLike, isImperial)
 
 		jsonValue(res, cachedValue)
@@ -119,6 +147,8 @@ func GetWeather(res http.ResponseWriter, req *http.Request, cache *types.Cache[t
 
 		// Format weather object and then return it
 		weather.Temperature = fmtTemperature(weather.Temperature, isImperial)
+		weather.Min = fmtTemperature(weather.Min, isImperial)
+		weather.Max = fmtTemperature(weather.Max, isImperial)
 		weather.FeelsLike = fmtTemperature(weather.FeelsLike, isImperial)
 
 		jsonValue(res, weather)
@@ -219,7 +249,13 @@ func GetWind(res http.ResponseWriter, req *http.Request, cache *types.Cache[type
 	}
 }
 
-func GetForecast(res http.ResponseWriter, req *http.Request, cache *types.Cache[types.Forecast], vars *types.Variables) {
+func GetForecast(
+	res http.ResponseWriter,
+	req *http.Request,
+	dCache *types.Cache[types.DailyForecast],
+	hCache *types.Cache[types.HourlyForecast],
+	vars *types.Variables,
+) {
 	if req.Method != http.MethodGet {
 		jsonError(res, "error", "method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -232,49 +268,54 @@ func GetForecast(res http.ResponseWriter, req *http.Request, cache *types.Cache[
 	// Check whether the 'i' parameter(imperial mode) is specified
 	isImperial := req.URL.Query().Has("i")
 
-	cachedValue, found := cache.GetEntry(fmtKey(cityName), vars.TimeToLive)
-	if found {
-		forecast := deepCopyForecast(cachedValue)
-
-		// Format forecast object and then return it
-		for idx := range forecast.Forecast {
-			val := &forecast.Forecast[idx]
-
-			val.Min = fmtTemperature(val.Min, isImperial)
-			val.Max = fmtTemperature(val.Max, isImperial)
-			val.FeelsLike = fmtTemperature(val.FeelsLike, isImperial)
-			val.Wind.Speed = fmtWind(val.Wind.Speed, isImperial)
+	// Check whether the 'h' parameter(hourly forecast) is specified
+	if req.URL.Query().Has("h") {
+		cachedValue, found := hCache.GetEntry(fmtKey(cityName), vars.TimeToLive)
+		if found {
+			forecast := deepCopyForecast(cachedValue)
+			fmtHourlyForecast(&forecast, isImperial)
+			jsonValue(res, forecast)
+			return
 		}
 
-		jsonValue(res, forecast)
-	} else {
-		// Get city coordinates
 		city, err := model.GetCoordinates(cityName, vars.Token)
 		if err != nil {
 			jsonError(res, "error", err.Error(), http.StatusBadRequest)
 			return
 		}
 
-		// Get city forecast
-		forecast, err := model.GetForecast(&city, vars.Token)
+		forecast, err := model.GetForecast[types.HourlyForecast](&city, vars.Token, model.HOURLY)
 		if err != nil {
 			jsonError(res, "error", err.Error(), http.StatusBadRequest)
 			return
 		}
 
-		// Add result to cache
-		cache.AddEntry(deepCopyForecast(forecast), fmtKey(cityName))
-
-		// Format forecast object and then return it
-		for idx := range forecast.Forecast {
-			val := &forecast.Forecast[idx]
-
-			val.Min = fmtTemperature(val.Min, isImperial)
-			val.Max = fmtTemperature(val.Max, isImperial)
-			val.FeelsLike = fmtTemperature(val.FeelsLike, isImperial)
-			val.Wind.Speed = fmtWind(val.Wind.Speed, isImperial)
+		hCache.AddEntry(deepCopyForecast(forecast), fmtKey(cityName))
+		fmtHourlyForecast(&forecast, isImperial)
+		jsonValue(res, forecast)
+	} else { // Daily forecast(default)
+		cachedValue, found := dCache.GetEntry(fmtKey(cityName), vars.TimeToLive)
+		if found {
+			forecast := deepCopyForecast(cachedValue)
+			fmtDailyForecast(&forecast, isImperial)
+			jsonValue(res, forecast)
+			return
 		}
 
+		city, err := model.GetCoordinates(cityName, vars.Token)
+		if err != nil {
+			jsonError(res, "error", err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		forecast, err := model.GetForecast[types.DailyForecast](&city, vars.Token, model.DAILY)
+		if err != nil {
+			jsonError(res, "error", err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		dCache.AddEntry(deepCopyForecast(forecast), fmtKey(cityName))
+		fmtDailyForecast(&forecast, isImperial)
 		jsonValue(res, forecast)
 	}
 }
