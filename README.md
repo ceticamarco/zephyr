@@ -36,10 +36,12 @@ which yield the following:
 
 ```json
 {
-  "date": "Thursday, 2025/06/19",
-  "temperature": "33°C",
+  "date": "Thursday, 2025/07/31",
+  "temperature": "29°C",
+  "min": "19°C",
+  "max": "29°C",
   "condition": "Clear",
-  "feelsLike": "36°C",
+  "feelsLike": "29°C",
   "emoji": "☀️"
 }
 ```
@@ -55,10 +57,12 @@ which yields:
 
 ```json
 {
-  "date": "Thursday, 2025/06/19",
-  "temperature": "65°F",
+  "date": "Thursday, 2025/07/31",
+  "temperature": "61°F",
+  "min": "51°F",
+  "max": "61°F",
   "condition": "Clear",
-  "feelsLike": "68°F",
+  "feelsLike": "61°F",
   "emoji": "☀️"
 }
 ```
@@ -105,6 +109,8 @@ As in the previous examples, you can append the `i` query parameter to get resul
 in imperial units.
 
 ## Forecast
+
+### Daily
 The `/forecast/:city` endpoint allows you to get the weather forecast of the
 next 4 days. For example:
 
@@ -128,7 +134,8 @@ which yields:
         "arrow": "↗️",
         "direction": "SSW",
         "speed": "14.7 km/h"
-      }
+      },
+      "rainProbability": "100%"
     },
     {
       "date": "Wednesday, 2025/05/07",
@@ -141,7 +148,8 @@ which yields:
         "arrow": "↘️",
         "direction": "NNW",
         "speed": "13.9 km/h"
-      }
+      },
+      "rainProbability": "100%"
     }
   ]
 }
@@ -149,6 +157,48 @@ which yields:
 
 As in the previous examples, you can append the `i` query parameter to get results
 in imperial units.
+
+### Hourly
+You can also get the hourly forecast of a time window of 9 hours by appending
+the `h`(hourly) query parameter to the URL:
+
+```sh
+curl -s 'http://127.0.0.1:3000/forecast/tapei?h' | jq
+```
+
+```json
+{
+  "forecast": [
+    {
+      "time": "2:00 PM",
+      "temperature": "26°C",
+      "condition": "Clouds",
+      "emoji": "☁️",
+      "wind": {
+        "arrow": "↘️",
+        "direction": "NW",
+        "speed": "23.3 km/h"
+      },
+      "rainProbability": "0%"
+    },
+    {
+      "time": "3:00 PM",
+      "temperature": "27°C",
+      "condition": "Clouds",
+      "emoji": "☁️",
+      "wind": {
+        "arrow": "↘️",
+        "direction": "NW",
+        "speed": "20.2 km/h"
+      },
+      "rainProbability": "0%"
+    }
+  ]
+}
+```
+
+As in the previous examples, you can append the `i` query parameter to get results
+in imperial units(**tip**: you can mix both parameter using `&`).
 
 ## Moon
 

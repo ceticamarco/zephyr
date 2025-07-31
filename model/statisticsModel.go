@@ -12,7 +12,7 @@ import (
 func GetStatistics(cityName string, statDB *types.StatDB) (types.StatResult, error) {
 	// Check whether there are sufficient and updated records for the given location
 	if statDB.IsKeyInvalid(cityName) {
-		return types.StatResult{}, errors.New("Insufficient or outdated data to perform statistical analysis")
+		return types.StatResult{}, errors.New("insufficient or outdated data to perform statistical analysis")
 	}
 
 	extractTemps := func(weatherArr []types.Weather) ([]float64, error) {

@@ -1,8 +1,8 @@
 package types
 
-// The ForecastEntity data type, representing the weather forecast
+// The DailyForecastEntity data type, representing the weather forecast
 // of a single day
-type ForecastEntity struct {
+type DailyForecastEntity struct {
 	Date      ZephyrDate `json:"date"`
 	Min       string     `json:"min"`
 	Max       string     `json:"max"`
@@ -10,9 +10,26 @@ type ForecastEntity struct {
 	Emoji     string     `json:"emoji"`
 	FeelsLike string     `json:"feelsLike"`
 	Wind      Wind       `json:"wind"`
+	RainProb  string     `json:"rainProbability"`
 }
 
-// The Forecast data type, representing a set of ForecastEntity
-type Forecast struct {
-    Forecast []ForecastEntity `json:"forecast"`
+// The DailyForecast data type, representing a set of DailyForecastEntity
+type DailyForecast struct {
+	Forecast []DailyForecastEntity `json:"forecast"`
+}
+
+// The HourlyForecastEntity data type, representing the weather forecast
+// of a single hour
+type HourlyForecastEntity struct {
+	Time        ZephyrTime `json:"time"`
+	Temperature string     `json:"temperature"`
+	Condition   string     `json:"condition"`
+	Emoji       string     `json:"emoji"`
+	Wind        Wind       `json:"wind"`
+	RainProb    string     `json:"rainProbability"`
+}
+
+// The HourlyForecast data type, representing a set of HourlyForecastEntity
+type HourlyForecast struct {
+	Forecast []HourlyForecastEntity `json:"forecast"`
 }
