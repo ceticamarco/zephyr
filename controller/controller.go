@@ -320,13 +320,13 @@ func GetForecast(
 	}
 }
 
-func GetMoon(res http.ResponseWriter, req *http.Request, cache *types.CacheEntity[types.Moon], vars *types.Variables) {
+func GetMoon(res http.ResponseWriter, req *http.Request, cache *types.Cache[types.Moon], vars *types.Variables) {
 	if req.Method != http.MethodGet {
 		jsonError(res, "error", "method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	cachedValue, found := cache.GetEntry(vars.TimeToLive)
+	cachedValue, found := cache.GetEntry(fmtKey("moon"), vars.TimeToLive)
 	if found {
 		// Format moon object and then return it
 		cachedValue.Percentage = fmt.Sprintf("%s%%", cachedValue.Percentage)
@@ -341,7 +341,7 @@ func GetMoon(res http.ResponseWriter, req *http.Request, cache *types.CacheEntit
 		}
 
 		// Add result to cache
-		cache.AddEntry(moon)
+		cache.AddEntry(moon, fmtKey("moon"))
 
 		// Format moon object and then return it
 		moon.Percentage = fmt.Sprintf("%s%%", moon.Percentage)

@@ -3,11 +3,13 @@ package types
 import (
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 )
 
 // StatDB data type, representing a mapping between a location and its weather
 type StatDB struct {
+	mu sync.RWMutex
 	db map[string]Weather
 }
 
@@ -18,6 +20,9 @@ func InitDB() *StatDB {
 }
 
 func (statDB *StatDB) AddStatistic(cityName string, weather Weather) {
+	statDB.mu.Lock()
+	defer statDB.mu.Unlock()
+
 	key := fmt.Sprintf("%s@%s", weather.Date.Date.Format("2006-01-02"), cityName)
 
 	// Insert weather statistic into the database only if it isn't present
@@ -29,6 +34,9 @@ func (statDB *StatDB) AddStatistic(cityName string, weather Weather) {
 }
 
 func (statDB *StatDB) IsKeyInvalid(key string) bool {
+	statDB.mu.RLock()
+	defer statDB.mu.RUnlock()
+
 	// A key is invalid if it has less than 2 entries within the last 2 days
 	threshold := time.Now().AddDate(0, 0, -2)
 
@@ -52,6 +60,9 @@ func (statDB *StatDB) IsKeyInvalid(key string) bool {
 }
 
 func (statDB *StatDB) GetCityStatistics(cityName string) []Weather {
+	statDB.mu.RLock()
+	defer statDB.mu.RUnlock()
+
 	result := make([]Weather, 0)
 
 	for key, record := range statDB.db {

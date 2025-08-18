@@ -2,6 +2,7 @@ package types
 
 import (
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -18,6 +19,7 @@ type CacheEntity[T cacheType] struct {
 
 // Cache, representing a mapping between a key(str) and a CacheEntity
 type Cache[T cacheType] struct {
+	mu   sync.RWMutex
 	Data map[string]CacheEntity[T]
 }
 
@@ -28,7 +30,7 @@ type Caches struct {
 	WindCache           Cache[Wind]
 	DailyForecastCache  Cache[DailyForecast]
 	HourlyForecastCache Cache[HourlyForecast]
-	MoonCache           CacheEntity[Moon]
+	MoonCache           Cache[Moon]
 }
 
 func InitCache() *Caches {
@@ -38,11 +40,14 @@ func InitCache() *Caches {
 		WindCache:           Cache[Wind]{Data: make(map[string]CacheEntity[Wind])},
 		DailyForecastCache:  Cache[DailyForecast]{Data: make(map[string]CacheEntity[DailyForecast])},
 		HourlyForecastCache: Cache[HourlyForecast]{Data: make(map[string]CacheEntity[HourlyForecast])},
-		MoonCache:           CacheEntity[Moon]{element: Moon{}, timestamp: time.Time{}},
+		MoonCache:           Cache[Moon]{Data: make(map[string]CacheEntity[Moon])},
 	}
 }
 
 func (cache *Cache[T]) GetEntry(cityName string, ttl int8) (T, bool) {
+	cache.mu.RLock()
+	defer cache.mu.RUnlock()
+
 	val, isPresent := cache.Data[strings.ToUpper(cityName)]
 
 	// If key is not present, return a zero value
@@ -61,33 +66,13 @@ func (cache *Cache[T]) GetEntry(cityName string, ttl int8) (T, bool) {
 }
 
 func (cache *Cache[T]) AddEntry(entry T, cityName string) {
+	cache.mu.Lock()
+	defer cache.mu.Unlock()
+
 	currentTime := time.Now()
 
 	cache.Data[strings.ToUpper(cityName)] = CacheEntity[T]{
 		element:   entry,
 		timestamp: currentTime,
 	}
-}
-
-func (moon *CacheEntity[Moon]) GetEntry(ttl int8) (Moon, bool) {
-	var zeroMoon Moon
-
-	// If moon data is not present, return a zero value
-	if moon == nil {
-		return zeroMoon, false
-	}
-
-	// Otherwise check whether the element is expired
-	currentTime := time.Now()
-	expired := currentTime.Sub(moon.timestamp) > (time.Duration(ttl) * time.Hour)
-	if expired {
-		return zeroMoon, false
-	}
-
-	return moon.element, true
-}
-
-func (cache *CacheEntity[Moon]) AddEntry(entry Moon) {
-	cache.element = entry
-	cache.timestamp = time.Now()
 }
