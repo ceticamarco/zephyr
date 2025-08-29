@@ -36,13 +36,33 @@ which yield the following:
 
 ```json
 {
-  "date": "Thursday, 2025/07/31",
-  "temperature": "29°C",
-  "min": "19°C",
-  "max": "29°C",
-  "condition": "Clear",
-  "feelsLike": "29°C",
-  "emoji": "☀️"
+  "date": "Friday, 2025/08/29",
+  "temperature": "18°C",
+  "min": "18°C",
+  "max": "24°C",
+  "condition": "Clouds",
+  "feelsLike": "18°C",
+  "emoji": "☁️",
+  "alerts": [
+    {
+      "event": "Yellow Thunderstorm Warning",
+      "startDate": "Friday, 2025/08/29 2:00 AM",
+      "endDate": "Friday, 2025/08/29 11:59 PM",
+      "description": "Moderate intensity weather phenomena expected EASTERN ALPINE AND PRE-ALPINE SECTOR"
+    },
+    {
+      "event": "Yellow Thunderstorm Warning",
+      "startDate": "Saturday, 2025/08/30 12:00 AM",
+      "endDate": "Saturday, 2025/08/30 5:59 AM",
+      "description": "Moderate intensity weather phenomena expected"
+    },
+    {
+      "event": "Orange Thunderstorm Warning",
+      "startDate": "Friday, 2025/08/29 9:00 AM",
+      "endDate": "Friday, 2025/08/29 11:59 PM",
+      "description": "Severe weather expected"
+    }
+  ]
 }
 ```
 
@@ -57,13 +77,33 @@ which yields:
 
 ```json
 {
-  "date": "Thursday, 2025/07/31",
-  "temperature": "61°F",
-  "min": "51°F",
-  "max": "61°F",
-  "condition": "Clear",
-  "feelsLike": "61°F",
-  "emoji": "☀️"
+  "date": "Friday, 2025/08/29",
+  "temperature": "50°F",
+  "min": "50°F",
+  "max": "56°F",
+  "condition": "Clouds",
+  "feelsLike": "50°F",
+  "emoji": "☁️",
+  "alerts": [
+    {
+      "event": "Yellow Thunderstorm Warning",
+      "startDate": "Friday, 2025/08/29 2:00 AM",
+      "endDate": "Friday, 2025/08/29 11:59 PM",
+      "description": "Moderate intensity weather phenomena expected EASTERN ALPINE AND PRE-ALPINE SECTOR"
+    },
+    {
+      "event": "Yellow Thunderstorm Warning",
+      "startDate": "Saturday, 2025/08/30 12:00 AM",
+      "endDate": "Saturday, 2025/08/30 5:59 AM",
+      "description": "Moderate intensity weather phenomena expected"
+    },
+    {
+      "event": "Orange Thunderstorm Warning",
+      "startDate": "Friday, 2025/08/29 9:00 AM",
+      "endDate": "Friday, 2025/08/29 11:59 PM",
+      "description": "Severe weather expected"
+    }
+  ]
 }
 ```
 

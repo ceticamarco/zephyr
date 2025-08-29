@@ -112,6 +112,11 @@ func GetWeather(res http.ResponseWriter, req *http.Request, cache *types.Cache[t
 	path := strings.TrimPrefix(req.URL.Path, "/weather/")
 	cityName := strings.Trim(path, "/") // Remove trailing slash if present
 
+	if cityName == "" {
+		jsonError(res, "error", "specify city name", http.StatusMethodNotAllowed)
+		return
+	}
+
 	// Check whether the 'i' parameter(imperial mode) is specified
 	isImperial := req.URL.Query().Has("i")
 
@@ -165,6 +170,11 @@ func GetMetrics(res http.ResponseWriter, req *http.Request, cache *types.Cache[t
 	path := strings.TrimPrefix(req.URL.Path, "/metrics/")
 	cityName := strings.Trim(path, "/") // Remove trailing slash if present
 
+	if cityName == "" {
+		jsonError(res, "error", "specify city name", http.StatusMethodNotAllowed)
+		return
+	}
+
 	// Check whether the 'i' parameter(imperial mode) is specified
 	isImperial := req.URL.Query().Has("i")
 
@@ -215,6 +225,11 @@ func GetWind(res http.ResponseWriter, req *http.Request, cache *types.Cache[type
 	path := strings.TrimPrefix(req.URL.Path, "/wind/")
 	cityName := strings.Trim(path, "/") // Remove trailing slash if present
 
+	if cityName == "" {
+		jsonError(res, "error", "specify city name", http.StatusMethodNotAllowed)
+		return
+	}
+
 	// Check whether the 'i' parameter(imperial mode) is specified
 	isImperial := req.URL.Query().Has("i")
 
@@ -264,6 +279,11 @@ func GetForecast(
 	// Extract city name from '/forecast/:city'
 	path := strings.TrimPrefix(req.URL.Path, "/forecast/")
 	cityName := strings.Trim(path, "/") // Remove trailing slash if present
+
+	if cityName == "" {
+		jsonError(res, "error", "specify city name", http.StatusMethodNotAllowed)
+		return
+	}
 
 	// Check whether the 'i' parameter(imperial mode) is specified
 	isImperial := req.URL.Query().Has("i")
@@ -359,6 +379,11 @@ func GetStatistics(res http.ResponseWriter, req *http.Request, statDB *types.Sta
 	// Extract city name from '/stats/:city'
 	path := strings.TrimPrefix(req.URL.Path, "/stats/")
 	cityName := strings.Trim(path, "/") // Remove trailing slash if present
+
+	if cityName == "" {
+		jsonError(res, "error", "specify city name", http.StatusMethodNotAllowed)
+		return
+	}
 
 	// Check whether the 'i' parameter(imperial mode) is specified
 	isImperial := req.URL.Query().Has("i")

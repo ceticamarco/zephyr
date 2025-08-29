@@ -53,7 +53,7 @@ func GetWeather(city *types.City, apiKey string) (types.Weather, error) {
 	params.Set("lon", strconv.FormatFloat(city.Lon, 'f', -1, 64))
 	params.Set("appid", apiKey)
 	params.Set("units", "metric")
-	params.Set("exclude", "minutely,hourly,alerts")
+	params.Set("exclude", "minutely,hourly")
 
 	url.RawQuery = params.Encode()
 
@@ -81,6 +81,12 @@ func GetWeather(city *types.City, apiKey string) (types.Weather, error) {
 				Max float64 `json:"max"`
 			} `json:"temp"`
 		} `json:"daily"`
+		Alerts []struct {
+			Event       string `json:"event"`
+			Start       int64  `json:"start"`
+			End         int64  `json:"end"`
+			Description string `json:"description"`
+		} `json:"alerts"`
 	}
 
 	var weather WeatherRes
@@ -107,6 +113,27 @@ func GetWeather(city *types.City, apiKey string) (types.Weather, error) {
 	isNight := strings.HasSuffix(weather.Current.Weather[0].Icon, "n")
 	emoji := GetEmoji(condition, isNight)
 
+	// Format weather alerts
+	var alerts []types.WeatherAlert
+	for _, alert := range weather.Alerts {
+		// Format both start and end timestamp as 'YYYY-MM-DD'
+		utcStartDate := time.Unix(int64(alert.Start), 0)
+		startDate := types.ZephyrAlertDate{Date: utcStartDate}
+
+		utcEndDate := time.Unix(int64(alert.End), 0)
+		endDate := types.ZephyrAlertDate{Date: utcEndDate}
+
+		// Extract the first line of alert description
+		eventDescription := strings.Split(alert.Description, "\n")[0]
+
+		alerts = append(alerts, types.WeatherAlert{
+			Event:       alert.Event,
+			Start:       startDate,
+			End:         endDate,
+			Description: eventDescription,
+		})
+	}
+
 	return types.Weather{
 		Date:        weatherDate,
 		Temperature: strconv.FormatFloat(weather.Current.Temperature, 'f', -1, 64),
@@ -115,5 +142,6 @@ func GetWeather(city *types.City, apiKey string) (types.Weather, error) {
 		FeelsLike:   strconv.FormatFloat(weather.Current.FeelsLike, 'f', -1, 64),
 		Condition:   weather.Current.Weather[0].Title,
 		Emoji:       emoji,
+		Alerts:      alerts,
 	}, nil
 }
