@@ -19,12 +19,11 @@ Zephyr is designed to be simple, fast and efficient, providing only the
 weather data of a given location, without any additional nonsense.
 
 This service communicates through a JSON API, making it suitable for
-any kind of internet-based project or device. I already use it on a widget
-on my phone, on my terminal, on the tmux's status bar, in a couple of
-smart bedside clocks I've built and as a standalone web app.
+any kind of internet-based project or device. I already use it as a [standalone web app](https://m.marcocetica.com),
+as a phone widget and on my terminal.
 
 ## Weather
-As state before, Zephyr talks via HTTP using the JSON format. Therefore, you
+As stated before, Zephyr talks via HTTP using JSON formatting. Therefore, you
 can query it using any HTTP client of your choice. Below you can find some examples
 using `curl`:
 
@@ -130,7 +129,7 @@ As in the previous example, you can append the `i` query parameter to get result
 in imperial units.
 
 ## Wind
-The `/wind/:city` endpoint provides wind related information(such as speed and direction) for a given city:
+The `/wind/:city` endpoint provides wind related information (such as speed and direction) for a given city:
 
 ```sh
 curl -s 'http://127.0.0.1:3000/wind/bolzano' | jq
@@ -238,7 +237,7 @@ curl -s 'http://127.0.0.1:3000/forecast/tapei?h' | jq
 ```
 
 As in the previous examples, you can append the `i` query parameter to get results
-in imperial units(**tip**: you can mix both parameter using `&`).
+in imperial units (**tip**: you can mix both parameter using `&`).
 
 ## Moon
 
@@ -329,7 +328,7 @@ will be flagged as outliers by the model and will be reported as such:
 The anomaly detection algorithm is based on a modified version of the
 [Z-Score](https://en.wikipedia.org/wiki/Standard_score) algorithm, which uses the
 [Median Absolute Deviation](https://en.wikipedia.org/wiki/Median_absolute_deviation) to measure the variability
-in a given sample of quantitative data. The algorithm can be summarized as follows(let $X$ be the sample):
+in a given sample of quantitative data. The algorithm can be summarized as follows (let $X$ be the sample):
 
 
 $$
@@ -374,9 +373,9 @@ but no less than a week, *should* follow a normal distribution.
 
 > [!IMPORTANT]
 > The anomaly detection algorithm works under the assumption that the weather data
-> is normally distributed(at least roughly), this might not be the case on datasets
-> with a very small number of samples(e.g. few days of data) or with a large
-> number of samples(e.g. multi-seasonal data). 
+> is normally distributed (at least roughly), this might not be the case on datasets
+> with a very small number of samples (e.g. few days of data) or with a large
+> number of samples (e.g. multi-seasonal data). 
 
 The algorithm works quite well when these conditions are met, and even with real world data,
 the results were quite satisfactory. However, if it
@@ -399,12 +398,12 @@ if you are using their free tier.
 ## Configuration
 Zephyr requires the following environment variables to be set:
 
-| Variable             | Meaning                                |
-|----------------------|----------------------------------------|
-| `ZEPHYR_ADDR`        | Listen address                         |
-| `ZEPHYR_PORT`        | Listen port                            |
-| `ZEPHYR_TOKEN`       | OpenWeatherMap API key                 |
-| `ZEPHYR_CACHE_TTL`   | Cache time-to-live(expressed in hours) |
+| Variable             | Meaning                                 |
+|----------------------|---------------------------------------- |
+| `ZEPHYR_ADDR`        | Listen address                          |
+| `ZEPHYR_PORT`        | Listen port                             |
+| `ZEPHYR_TOKEN`       | OpenWeatherMap API key                  |
+| `ZEPHYR_CACHE_TTL`   | Cache time-to-live (expressed in hours) |
 
 Each value must be set _before_ launching the application. If you plan to deploy Zephyr using
 Docker, you can specify these variables in the `compose.yml` file.

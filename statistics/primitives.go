@@ -45,14 +45,17 @@ func Median(temperatures []float64) float64 {
 		return 0
 	}
 
-	slices.Sort(temperatures)
-	length := len(temperatures)
+	// Sort the array without mutating the original values
+	sortedTemps := slices.Clone(temperatures)
+	slices.Sort(sortedTemps)
+
+	length := len(sortedTemps)
 	midValue := length / 2
 
 	if length%2 == 0 {
-		return (temperatures[midValue-1] + temperatures[midValue]) / 2
+		return (sortedTemps[midValue-1] + sortedTemps[midValue]) / 2
 	} else {
-		return temperatures[midValue]
+		return sortedTemps[midValue]
 	}
 }
 
@@ -63,10 +66,12 @@ func Mode(temperatures []float64) float64 {
 		return 0
 	}
 
-	slices.Sort(temperatures)
+	// Sort the array without mutating the original values
+	sortedTemps := slices.Clone(temperatures)
+	slices.Sort(sortedTemps)
 
 	frequencies := make(map[float64]int)
-	for _, val := range temperatures {
+	for _, val := range sortedTemps {
 		frequencies[val]++
 	}
 
@@ -124,6 +129,7 @@ func RobustZScore(temperatures []float64) []struct {
 		Idx   int
 		Value float64
 	}
+
 	for idx, val := range temperatures {
 		z := scale * (val - med) / madAbsDev
 
