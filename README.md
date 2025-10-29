@@ -1,7 +1,7 @@
 <div align="center">
-<h1>Zephyr 🌲</h1>
+<h1>Zephyr 🌿</h1>
     
-<h6><i>real-time weather forecast service</i></h6>
+<h6><i>real-time weather forecast web service</i></h6>
 
 [![](https://github.com/ceticamarco/zephyr/actions/workflows/docker.yml/badge.svg)](https://github.com/ceticamarco/zephyr/actions/workflows/docker.yml)
 [![](https://github.com/ceticamarco/zephyr/actions/workflows/tests.yml/badge.svg)](https://github.com/ceticamarco/zephyr/actions/workflows/tests.yml)
