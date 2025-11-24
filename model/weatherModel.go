@@ -42,10 +42,10 @@ func GetEmoji(condition string, isNight bool) string {
 	return "❓"
 }
 
-func GetWeather(city *types.City, apiKey string) (types.Weather, error) {
+func GetWeather(city *types.City, apiKey string) (types.Weather, float64, error) {
 	url, err := url.Parse(WTR_URL)
 	if err != nil {
-		return types.Weather{}, err
+		return types.Weather{}, 0, err
 	}
 
 	params := url.Query()
@@ -59,7 +59,7 @@ func GetWeather(city *types.City, apiKey string) (types.Weather, error) {
 
 	res, err := http.Get(url.String())
 	if err != nil {
-		return types.Weather{}, err
+		return types.Weather{}, 0, err
 	}
 	defer res.Body.Close()
 
@@ -77,8 +77,9 @@ func GetWeather(city *types.City, apiKey string) (types.Weather, error) {
 		} `json:"current"`
 		Daily []struct {
 			Temp struct {
-				Min float64 `json:"min"`
-				Max float64 `json:"max"`
+				Daily float64 `json:"day"`
+				Min   float64 `json:"min"`
+				Max   float64 `json:"max"`
 			} `json:"temp"`
 		} `json:"daily"`
 		Alerts []struct {
@@ -91,7 +92,7 @@ func GetWeather(city *types.City, apiKey string) (types.Weather, error) {
 
 	var weather WeatherRes
 	if err := json.NewDecoder(res.Body).Decode(&weather); err != nil {
-		return types.Weather{}, err
+		return types.Weather{}, 0, err
 	}
 
 	// Format UNIX timestamp as 'YYYY-MM-DD'
@@ -143,5 +144,5 @@ func GetWeather(city *types.City, apiKey string) (types.Weather, error) {
 		Condition:   weather.Current.Weather[0].Title,
 		Emoji:       emoji,
 		Alerts:      alerts,
-	}, nil
+	}, weather.Daily[0].Temp.Daily, nil
 }

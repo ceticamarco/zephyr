@@ -147,12 +147,10 @@ func RobustZScore(temperatures []float64) []struct {
 	return anomalies
 }
 
-func DetectAnomalies(weatherArr []types.Weather) []types.WeatherAnomaly {
-	temps := make([]float64, len(weatherArr))
-
-	for idx, weather := range weatherArr {
-		temp, _ := strconv.ParseFloat(weather.Temperature, 64)
-		temps[idx] = temp
+func DetectAnomalies(statsArr []types.StatElement) []types.WeatherAnomaly {
+	temps := make([]float64, len(statsArr))
+	for idx, stat := range statsArr {
+		temps[idx] = stat.Temperature
 	}
 
 	// Apply the Robust/MAD Z-Score anomaly detection algorithm
@@ -160,7 +158,7 @@ func DetectAnomalies(weatherArr []types.Weather) []types.WeatherAnomaly {
 	result := make([]types.WeatherAnomaly, 0, len(anomalies))
 	for _, anomaly := range anomalies {
 		result = append(result, types.WeatherAnomaly{
-			Date: weatherArr[anomaly.Idx].Date,
+			Date: types.ZephyrDate{Date: statsArr[anomaly.Idx].Date},
 			Temp: strconv.FormatFloat(anomaly.Value, 'f', -1, 64),
 		})
 	}

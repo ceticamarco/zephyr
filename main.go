@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/ceticamarco/zephyr/cache"
 	"github.com/ceticamarco/zephyr/controller"
 	"github.com/ceticamarco/zephyr/types"
 )
@@ -25,8 +26,8 @@ func main() {
 	}
 
 	// Initialize cache, statDB and vars
-	cache := types.InitCache()
-	statDB := types.InitDB()
+	masterCache := cache.InitMasterCache()
+	statCache := cache.InitStatCache()
 	vars := types.Variables{
 		Token:      token,
 		TimeToLive: int8(ttl),
@@ -34,27 +35,27 @@ func main() {
 
 	// API endpoints
 	http.HandleFunc("/weather/", func(res http.ResponseWriter, req *http.Request) {
-		controller.GetWeather(res, req, &cache.WeatherCache, statDB, &vars)
+		controller.GetWeather(res, req, &masterCache.WeatherCache, statCache, &vars)
 	})
 
 	http.HandleFunc("/metrics/", func(res http.ResponseWriter, req *http.Request) {
-		controller.GetMetrics(res, req, &cache.MetricsCache, &vars)
+		controller.GetMetrics(res, req, &masterCache.MetricsCache, &vars)
 	})
 
 	http.HandleFunc("/wind/", func(res http.ResponseWriter, req *http.Request) {
-		controller.GetWind(res, req, &cache.WindCache, &vars)
+		controller.GetWind(res, req, &masterCache.WindCache, &vars)
 	})
 
 	http.HandleFunc("/forecast/", func(res http.ResponseWriter, req *http.Request) {
-		controller.GetForecast(res, req, &cache.DailyForecastCache, &cache.HourlyForecastCache, &vars)
+		controller.GetForecast(res, req, &masterCache.DailyForecastCache, &masterCache.HourlyForecastCache, &vars)
 	})
 
 	http.HandleFunc("/moon", func(res http.ResponseWriter, req *http.Request) {
-		controller.GetMoon(res, req, &cache.MoonCache, &vars)
+		controller.GetMoon(res, req, &masterCache.MoonCache, &vars)
 	})
 
 	http.HandleFunc("/stats/", func(res http.ResponseWriter, req *http.Request) {
-		controller.GetStatistics(res, req, statDB)
+		controller.GetStatistics(res, req, statCache)
 	})
 
 	listenAddr := fmt.Sprintf("%s:%s", host, port)

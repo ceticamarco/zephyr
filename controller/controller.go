@@ -4,10 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"math/rand"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
+	"github.com/ceticamarco/zephyr/cache"
 	"github.com/ceticamarco/zephyr/model"
 	"github.com/ceticamarco/zephyr/types"
 )
@@ -102,7 +105,7 @@ func deepCopyForecast[T types.DailyForecast | types.HourlyForecast](original T) 
 	return fc_copy
 }
 
-func GetWeather(res http.ResponseWriter, req *http.Request, cache *types.Cache[types.Weather], statDB *types.StatDB, vars *types.Variables) {
+func GetWeather(res http.ResponseWriter, req *http.Request, cache *cache.MasterCache[types.Weather], statCache *cache.StatCache, vars *types.Variables) {
 	if req.Method != http.MethodGet {
 		jsonError(res, "error", "method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -138,7 +141,7 @@ func GetWeather(res http.ResponseWriter, req *http.Request, cache *types.Cache[t
 		}
 
 		// Get city weather
-		weather, err := model.GetWeather(&city, vars.Token)
+		weather, dailyTemp, err := model.GetWeather(&city, vars.Token)
 		if err != nil {
 			jsonError(res, "error", err.Error(), http.StatusBadRequest)
 			return
@@ -148,7 +151,8 @@ func GetWeather(res http.ResponseWriter, req *http.Request, cache *types.Cache[t
 		cache.AddEntry(weather, fmtKey(cityName))
 
 		// Insert new statistic entry into the statistics database
-		statDB.AddStatistic(fmtKey(cityName), weather)
+		currentDate := time.Now().Format("2006-01-02")
+		statCache.AddStatistic(fmtKey(cityName), currentDate, dailyTemp)
 
 		// Format weather object and then return it
 		weather.Temperature = fmtTemperature(weather.Temperature, isImperial)
@@ -160,7 +164,7 @@ func GetWeather(res http.ResponseWriter, req *http.Request, cache *types.Cache[t
 	}
 }
 
-func GetMetrics(res http.ResponseWriter, req *http.Request, cache *types.Cache[types.Metrics], vars *types.Variables) {
+func GetMetrics(res http.ResponseWriter, req *http.Request, cache *cache.MasterCache[types.Metrics], vars *types.Variables) {
 	if req.Method != http.MethodGet {
 		jsonError(res, "error", "method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -215,7 +219,7 @@ func GetMetrics(res http.ResponseWriter, req *http.Request, cache *types.Cache[t
 	}
 }
 
-func GetWind(res http.ResponseWriter, req *http.Request, cache *types.Cache[types.Wind], vars *types.Variables) {
+func GetWind(res http.ResponseWriter, req *http.Request, cache *cache.MasterCache[types.Wind], vars *types.Variables) {
 	if req.Method != http.MethodGet {
 		jsonError(res, "error", "method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -267,8 +271,8 @@ func GetWind(res http.ResponseWriter, req *http.Request, cache *types.Cache[type
 func GetForecast(
 	res http.ResponseWriter,
 	req *http.Request,
-	dCache *types.Cache[types.DailyForecast],
-	hCache *types.Cache[types.HourlyForecast],
+	dCache *cache.MasterCache[types.DailyForecast],
+	hCache *cache.MasterCache[types.HourlyForecast],
 	vars *types.Variables,
 ) {
 	if req.Method != http.MethodGet {
@@ -340,7 +344,7 @@ func GetForecast(
 	}
 }
 
-func GetMoon(res http.ResponseWriter, req *http.Request, cache *types.Cache[types.Moon], vars *types.Variables) {
+func GetMoon(res http.ResponseWriter, req *http.Request, cache *cache.MasterCache[types.Moon], vars *types.Variables) {
 	if req.Method != http.MethodGet {
 		jsonError(res, "error", "method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -370,7 +374,23 @@ func GetMoon(res http.ResponseWriter, req *http.Request, cache *types.Cache[type
 	}
 }
 
-func GetStatistics(res http.ResponseWriter, req *http.Request, statDB *types.StatDB) {
+func addRandomStatistics(statDB *cache.StatCache, city string, n int, meanTemp, stdDev float64) {
+	now := time.Now().AddDate(0, 0, -1) // Start from yesterday
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+	for i := 0; i < n; i++ {
+		date := now.AddDate(0, 0, -i)
+		temp := r.NormFloat64()*stdDev + meanTemp
+
+		statDB.AddStatistic(
+			fmtKey(city),
+			date.Format("2006-01-02"),
+			temp,
+		)
+	}
+}
+
+func GetStatistics(res http.ResponseWriter, req *http.Request, statCache *cache.StatCache) {
 	if req.Method != http.MethodGet {
 		jsonError(res, "error", "method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -389,7 +409,7 @@ func GetStatistics(res http.ResponseWriter, req *http.Request, statDB *types.Sta
 	isImperial := req.URL.Query().Has("i")
 
 	// Get city statistics
-	stats, err := model.GetStatistics(fmtKey(cityName), statDB)
+	stats, err := model.GetStatistics(fmtKey(cityName), statCache)
 	if err != nil {
 		jsonError(res, "error", err.Error(), http.StatusBadRequest)
 		return
