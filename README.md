@@ -3,8 +3,8 @@
     
 <h6><i>real-time weather forecast web service</i></h6>
 
-[![](https://github.com/ceticamarco/zephyr/actions/workflows/docker.yml/badge.svg)](https://github.com/ceticamarco/zephyr/actions/workflows/docker.yml)
-[![](https://github.com/ceticamarco/zephyr/actions/workflows/tests.yml/badge.svg)](https://github.com/ceticamarco/zephyr/actions/workflows/tests.yml)
+![](https://git.marcocetica.com/marco/zephyr/actions/workflows/docker.yml/badge.svg)
+![](https://git.marcocetica.com/marco/zephyr/actions/workflows/tests.yml/badge.svg)
 
 </div>
 
